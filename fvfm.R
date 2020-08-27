@@ -177,11 +177,12 @@ PRIORS = set_prior(prs %>% filter(parameter == "eta") %>% pull(prior),
 #   mean_hdci()
 # 
 
+
 # 24M ----
 brmout24M = brm(brmsmodel, data = data24M,
                 stanvars = stanvars, prior = PRIORS,
                 iter = 7000, chains = 4, cores = 4, seed = 3456,
-                control = list(adapt_delta = 0.999, max_treedepth = 13))
+                control = list(adapt_delta = 0.9999, max_treedepth = 13))
 
 summary(brmout24M)
 
@@ -267,7 +268,7 @@ plot24
 # 48M ----
 brmout48M = brm(brmsmodel, data = data48M,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3456,
+                iter = 7000, chains = 4, cores = 4, seed = 3030,
                 control = list(adapt_delta = 0.9999, max_treedepth = 14))
 
 summary(brmout48M)
