@@ -181,8 +181,8 @@ PRIORS = set_prior(prs %>% filter(parameter == "eta") %>% pull(prior),
 # 24M ----
 brmout24M = brm(brmsmodel, data = data24M,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3456,
-                control = list(adapt_delta = 0.9999, max_treedepth = 13))
+                iter = 10000, chains = 4, cores = 4, seed = 5050,
+                control = list(adapt_delta = 0.9999, max_treedepth = 14))
 
 summary(brmout24M)
 
@@ -215,8 +215,8 @@ edata24M = data24M %>%
 # 24J ----
 brmout24J = brm(brmsmodel, data = data24J,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3456,
-                control = list(adapt_delta = 0.999, max_treedepth = 12))
+                iter = 10000, chains = 4, cores = 4, seed = 5050,
+                control = list(adapt_delta = 0.999, max_treedepth = 13))
 
 
 posterior_out24J = as.array(brmout24J)
@@ -254,9 +254,9 @@ plot24 = ggplot() +
   geom_line(aes(x = temperature,y = .value,color = "L2"),data = edata24J) +
   geom_point(aes(x = temperature, y = fvfm,colour = "L2"),data = data24J) +
   ggtitle("a")+
-  annotate("text",x = 35, y = 1.0,label = "24-h")+
+  annotate("text",x = 35, y = 0.95,label = "24-h")+
   scale_x_continuous(xlabF,limits = c(4, 36),breaks = seq(4, 36, by = 4)) +
-  scale_y_continuous(ylabF,limits = c(0, 0.8),breaks = seq(0,0.8, by = 0.2)) +
+  scale_y_continuous(ylabF,limits = c(0, 1.0),breaks = seq(0,1.0, by = 0.2)) +
   scale_colour_manual(name="",values=cols,labels = c("Mature","Juvenile"))+
   theme_pubr()+
   theme(legend.position = c(0.1,0.2),
@@ -268,8 +268,8 @@ plot24
 # 48M ----
 brmout48M = brm(brmsmodel, data = data48M,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3030,
-                control = list(adapt_delta = 0.9999, max_treedepth = 14))
+                iter = 10000, chains = 4, cores = 4, seed = 5050,
+                control = list(adapt_delta = 0.99999, max_treedepth = 14))
 
 summary(brmout48M)
 
