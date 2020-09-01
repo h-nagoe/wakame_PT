@@ -36,9 +36,9 @@ pam_priors = priors %>% filter(type == "pam")
 
 # 基本データ読み込み----
 
-RNG = "A1:G831"
+RNG = "A1:G941"
 sheet = "200821_wakame_168h"
-dset = read_xlsx(dir(pattern = "200821_wakame_168h*.*xlsx",
+dset = read_xlsx(dir(pattern = "200821_wakame_168h_2*.*xlsx",
                      full.names = TRUE),
                  range = RNG,
                  sheet = sheet)
@@ -181,7 +181,7 @@ PRIORS = set_prior(prs %>% filter(parameter == "eta") %>% pull(prior),
 # 24M ----
 brmout24M = brm(brmsmodel, data = data24M,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 10000, chains = 4, cores = 4, seed = 5050,
+                iter = 10000, chains = 4, cores = 4, seed = 2020,
                 control = list(adapt_delta = 0.9999, max_treedepth = 14))
 
 summary(brmout24M)
@@ -215,9 +215,10 @@ edata24M = data24M %>%
 # 24J ----
 brmout24J = brm(brmsmodel, data = data24J,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 10000, chains = 4, cores = 4, seed = 5050,
+                iter = 10000, chains = 4, cores = 4, seed = 2020,
                 control = list(adapt_delta = 0.999, max_treedepth = 13))
 
+summary(brmout24J)
 
 posterior_out24J = as.array(brmout24J)
 mcmc_rank_overlay(posterior_out24J)
@@ -265,11 +266,35 @@ plot24 = ggplot() +
 
 plot24  
 
+ggplot()+
+  geom_point(aes(x = temperature,
+                 y = fvfm),
+             data = data48M)
+
+# 
+# # brms model 作成 Beta　----
+# # ただのBeta分布にしてみたけどこれも合わないのでだめ
+# brmsmodel2 = brmsformula(fvfm ~ fvfmmodel(PS, HA, ET, KT,temperature),
+#                         PS ~ 1,
+#                         HA ~ 1,
+#                         ET ~ 1,
+#                         KT ~ 1,
+#                         nl = TRUE,
+#                         family = brms::Beta(link = "identity",
+#                                             link_phi = "log"))
+# 
+# # 48M Beta ----
+# brmout48M = brm(brmsmodel2, data = data48M,
+#                 stanvars = stanvars, prior = PRIORS,
+#                 iter = 10000, chains = 4, cores = 4, seed = 2024,
+#                 control = list(adapt_delta = 0.999999, max_treedepth = 15))
+
+
 # 48M ----
 brmout48M = brm(brmsmodel, data = data48M,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 10000, chains = 4, cores = 4, seed = 5050,
-                control = list(adapt_delta = 0.99999, max_treedepth = 14))
+                iter = 15000, chains = 4, cores = 4, seed = 1234,
+                control = list(adapt_delta = 0.999999, max_treedepth = 14))
 
 summary(brmout48M)
 
@@ -302,7 +327,7 @@ edata48M = data48M %>%
 # 48J ----
 brmout48J = brm(brmsmodel, data = data48J,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3456,
+                iter = 7000, chains = 4, cores = 4, seed = 2020,
                 control = list(adapt_delta = 0.999, max_treedepth = 12))
 
 
@@ -351,7 +376,7 @@ plot48
 # 72M ----
 brmout72M = brm(brmsmodel, data = data72M,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3456,
+                iter = 7000, chains = 4, cores = 4, seed = 2020,
                 control = list(adapt_delta = 0.999, max_treedepth = 13))
 
 summary(brmout72M)
@@ -385,7 +410,7 @@ edata72M = data72M %>%
 # 72J ----
 brmout72J = brm(brmsmodel, data = data72J,
                 stanvars = stanvars, prior = PRIORS,
-                iter = 7000, chains = 4, cores = 4, seed = 3456,
+                iter = 7000, chains = 4, cores = 4, seed = 2020,
                 control = list(adapt_delta = 0.999, max_treedepth = 12))
 
 
@@ -434,7 +459,7 @@ plot72
 # 168M ----
 brmout168M = brm(brmsmodel, data = data168M,
                  stanvars = stanvars, prior = PRIORS,
-                 iter = 7000, chains = 4, cores = 4, seed = 3456,
+                 iter = 7000, chains = 4, cores = 4, seed = 2020,
                  control = list(adapt_delta = 0.999, max_treedepth = 13))
 
 summary(brmout168M)
@@ -467,7 +492,7 @@ edata168M = data168M %>%
 # 168J ----
 brmout168J = brm(brmsmodel, data = data168J,
                  stanvars = stanvars, prior = PRIORS,
-                 iter = 7000, chains = 4, cores = 4, seed = 3456,
+                 iter = 7000, chains = 4, cores = 4, seed = 2020,
                  control = list(adapt_delta = 0.999, max_treedepth = 12))
 
 
