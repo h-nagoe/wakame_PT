@@ -54,34 +54,9 @@ dset = dset %>%
 #   filter(Hour == 24) %>% 
 #   select(Hour,Growth,temperature = Temp,fvfm =FvFm)
 
-# H,Gごとにデータ読み込む ----
-
-data24M = dset %>% 
-  filter(Hour == 24,Growth == "Mature")
-
-data24J = dset %>% 
-  filter(Hour == 24,Growth == "Juvenile")
-
-data48M = dset %>% 
-  filter(Hour == 48,Growth == "Mature") 
-
-data48J = dset %>% 
-  filter(Hour == 48,Growth == "Juvenile")
-
-data72M = dset %>% 
-  filter(Hour == 72,Growth == "Mature")
-
-data72J = dset %>% 
-  filter(Hour == 72,Growth == "Juvenile") 
-
-data168M = dset %>% 
-  filter(Hour == 168,Growth == "Mature")
-data168J = dset %>% 
-  filter(Hour == 168,Growth == "Juvenile")
-
 dset %>% 
   ggplot() + 
-  geom_point(aes(x=Temp, y = FvFm)) +
+  geom_point(aes(x=temperature, y = fvfm)) +
   facet_grid(rows = vars(Hour),
              cols = vars(Growth))
 
@@ -133,7 +108,15 @@ brmout = brm(brmsmodel,
                 data = dset %>% filter(temperature < 30),
                 stanvars = stanvars, prior = PRIORS,
                 iter = 10, chains = 4, cores = 4, seed = 2020,
-                control = list(adapt_delta = 0.9999, max_treedepth = 12))
+                control = list(adapt_delta = 0.99, max_treedepth = 10))
+
+# # 24Hだけやってみる
+# brmout24M =　update(brmout, newdata = dset %>% 
+#                      filter(temperature < 30,Growth != "Mature", Hour == 24),
+#                 stanvars = stanvars, prior = PRIORS,
+#                 iter = 5000, chains = 4, cores = 4, seed = 2020,
+#                 control = list(adapt_delta = 0.99, max_treedepth = 10))
+
 
 # Mature
 dset2 = dset %>% 
@@ -163,7 +146,7 @@ dset2J = dset %>%
            control = list(adapt_delta = 0.9999, max_treedepth = 12))
   }))
 
-expose_functions(brmout24M, vectorize = TRUE)
+expose_functions(brmout, vectorize = TRUE)
 
 dset2 = dset2 %>% 
   mutate(summary = map(bfit, summary)) %>% 
@@ -230,9 +213,18 @@ dset2J = dset2J %>%
       mean_hdci()
   }))
 
+# 作図 ----
+
 xlabF = expression("Temperature" ~ ({}^degree*C ))
 ylabF = "Maximum Quantum Yield (Fv/Fm)" 
 
+dat_text = data.frame(
+  label = c("24-h","48-h","72-h","168-h"),
+  Hour = c(24, 48, 72, 168), x = 26, y = 0.95)
+
+dat_text_2 = data.frame(
+  label = c("a","b","c","d"),
+  Hour = c(24, 48, 72, 168), x = 4, y = 0.95)
 
 plot = ggplot() + 
   geom_ribbon(aes(ymin = .lower, ymax = .upper,x = temperature),
@@ -251,17 +243,23 @@ plot = ggplot() +
             data = dset2J %>% unnest(expect)) +
   geom_point(aes(x = temperature, y = fvfm,colour = "salmon"),
              data = dset2J %>% unnest(data)) +
-  facet_wrap("Hour")+
-  theme_pubr()
-
+  geom_text(data = dat_text,
+            mapping = aes(x = x, y = y, label = label))+
+  geom_text(data = dat_text_2,
+            mapping = aes(x = x, y = y, label = label))+
+  facet_wrap("Hour",
+             scales = "free")+
+  theme_pubr()+
+  scale_x_continuous(xlabF,limits = c(4, 28),breaks = seq(4, 28, by = 4)) +
+  scale_y_continuous(ylabF,limits = c(0, 1.0),breaks = seq(0,1.0, by = 0.2))+
+  scale_colour_discrete(labels = c("Mature","Juvenile"))+
+  theme(strip.text = element_blank(),
+        legend.background = element_blank(),
+        legend.position = c(0.06,0.65),
+        legend.title = element_blank())
+ 
 plot
 
-  ggtitle("a")+
-  annotate("text",x = 35, y = 0.95,label = "24-h")+
-  scale_x_continuous(xlabF,limits = c(4, 36),breaks = seq(4, 36, by = 4)) +
-  scale_y_continuous(ylabF,limits = c(0, 1.0),breaks = seq(0,1.0, by = 0.2)) +
-  theme(legend.position = c(0.1,0.2),
-        legend.background = element_blank(),
-        plot.title = element_text(vjust = -6,hjust = 0.02))
+ggsave("wakame_fvfm.png",plot)
+ggsave("wakame_fvfm.svg",plot)
 
-ggsave("plotM.jpg",plot = plotM)
