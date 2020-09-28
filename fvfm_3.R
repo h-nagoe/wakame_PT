@@ -15,10 +15,6 @@ library(knitr)
 rstan_options(auto_write=TRUE)
 options(mc.cores = parallel::detectCores())
 
-# ラベル ----
-xlabF = expression("Temperature" ~ ({}^degree*C ))
-ylabF = "Maximum Quantum Yield (Fv/Fm)" 
-
 # read "publushed parameters" ----
 
 priors = read_xlsx("published_parameters.xlsx")
@@ -55,6 +51,7 @@ dset = dset %>%
 #   select(Hour,Growth,temperature = Temp,fvfm =FvFm)
 
 dset %>% 
+  filter(temperature < 30)%>% 
   ggplot() + 
   geom_point(aes(x=temperature, y = fvfm)) +
   facet_grid(rows = vars(Hour),
@@ -95,13 +92,14 @@ prs = pam_priors %>%
   select(parameter, prior)
 
 PRIORS = set_prior(prs %>% filter(parameter == "eta") %>% pull(prior),
-                   class = "b", lb = 0, nlpar = "ET") +
+                   class = "b", lb = 1, nlpar = "ET") +
   set_prior(prs %>% filter(parameter == "topt") %>% pull(prior),
-            class = "b", lb = 0, nlpar = "KT") +
+            class = "b", lb = 273.15, nlpar = "KT") +
   set_prior(prs %>% filter(parameter == "ymax") %>% pull(prior),
             class = "b", lb = 0, nlpar = "PS") +
   set_prior(prs %>% filter(parameter == "ha") %>% pull(prior),
             class = "b", lb = 0, nlpar = "HA")
+# lbは左側の限界値
 
 # 仮当てはめ
 brmout = brm(brmsmodel, 
@@ -109,14 +107,6 @@ brmout = brm(brmsmodel,
                 stanvars = stanvars, prior = PRIORS,
                 iter = 10, chains = 4, cores = 4, seed = 2020,
                 control = list(adapt_delta = 0.99, max_treedepth = 10))
-
-# # 24Hだけやってみる
-# brmout24M =　update(brmout, newdata = dset %>% 
-#                      filter(temperature < 30,Growth != "Mature", Hour == 24),
-#                 stanvars = stanvars, prior = PRIORS,
-#                 iter = 5000, chains = 4, cores = 4, seed = 2020,
-#                 control = list(adapt_delta = 0.99, max_treedepth = 10))
-
 
 # Mature
 dset2 = dset %>% 
@@ -129,7 +119,7 @@ dset2 = dset %>%
            newdata = df, 
            stanvars = stanvars, prior = PRIORS,
            iter = 5000, chains = 4, cores = 4, seed = 2020,
-           control = list(adapt_delta = 0.9999, max_treedepth = 12))
+           control = list(adapt_delta = 0.9999, max_treedepth = 13))
   }))
 
 # Juvenile
@@ -226,6 +216,7 @@ dat_text_2 = data.frame(
   label = c("a","b","c","d"),
   Hour = c(24, 48, 72, 168), x = 4, y = 0.95)
 
+
 plot = ggplot() + 
   geom_ribbon(aes(ymin = .lower, ymax = .upper,x = temperature),
               alpha = 0.2,
@@ -252,7 +243,7 @@ plot = ggplot() +
   theme_pubr()+
   scale_x_continuous(xlabF,limits = c(4, 28),breaks = seq(4, 28, by = 4)) +
   scale_y_continuous(ylabF,limits = c(0, 1.0),breaks = seq(0,1.0, by = 0.2))+
-  scale_colour_discrete(labels = c("Mature","Juvenile"))+
+  scale_colour_discrete(labels = c("Juvenile","Mature"))+
   theme(strip.text = element_blank(),
         legend.background = element_blank(),
         legend.position = c(0.06,0.65),
@@ -260,6 +251,6 @@ plot = ggplot() +
  
 plot
 
-ggsave("wakame_fvfm.png",plot)
-ggsave("wakame_fvfm.svg",plot)
+ggsave("200928_wakame_fvfm.jpg",plot)
+ggsave("200928_wakame_fvfm.svg",plot)
 
